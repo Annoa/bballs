@@ -1,5 +1,6 @@
 *.class
 *.policy.applet
+*.html
 
 # Package Files #
 *.jar
