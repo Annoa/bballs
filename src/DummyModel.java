@@ -54,9 +54,11 @@ public class DummyModel implements IBouncingBallsModel {
 			if (y < r || y > areaHeight - r) { // ifall den studsar i taket
 				vy *= -1;
 			}
+
 			else {
 			vy -= GRAVITATION * deltaT;
 			}
+
 			x += vx * deltaT;
 			y += vy * deltaT;
 			/*
