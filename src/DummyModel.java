@@ -157,10 +157,7 @@ public class DummyModel implements IBouncingBallsModel {
 		b.vy = ((m2*v2y + m1 * v1y) - m1 * -(v1y-v2y))/(m2+m1);
 		
 		double xx = a.x - b.x;
-		double yy = a.y - b.y;
-		
-		
-		
+		double yy = a.y - b.y;		
 	}
 
 	@Override
