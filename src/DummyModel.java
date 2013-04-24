@@ -262,15 +262,15 @@ public class DummyModel implements IBouncingBallsModel {
 		 * mantelarean*0.002 volymen av själva plasten som vi multiplicerar med
 		 * densiteten 730 kg/m^3 vilket ger massan
 		 */
-		double m1 = 4 * Math.PI * a.r * a.r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
-		double m2 = 4 * Math.PI * b.r * b.r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
-		
-		double v1x = a.vx, v2x = b.vx, v1y = a.vy, v2y = b.vy;
-		
-		a.vx = ((m1*v1x + m2 * v2x) - m2 * -(v2x-v1x))/(m1+m2);
-		a.vy = ((m1*v1y + m2 * v2y) - m2 * -(v2y-v1y))/(m1+m2);
-		b.vx = ((m2*v2x + m1 * v1x) - m1 * -(v1x-v2x))/(m2+m1);
-		b.vy = ((m2*v2y + m1 * v1y) - m1 * -(v1y-v2y))/(m2+m1);
+//		double m1 = 4 * Math.PI * a.r * a.r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
+//		double m2 = 4 * Math.PI * b.r * b.r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
+//		
+//		double v1x = a.vx, v2x = b.vx, v1y = a.vy, v2y = b.vy;
+//		
+//		a.vx = ((m1*v1x + m2 * v2x) - m2 * -(v2x-v1x))/(m1+m2);
+//		a.vy = ((m1*v1y + m2 * v2y) - m2 * -(v2y-v1y))/(m1+m2);
+//		b.vx = ((m2*v2x + m1 * v1x) - m1 * -(v1x-v2x))/(m2+m1);
+//		b.vy = ((m2*v2y + m1 * v1y) - m1 * -(v1y-v2y))/(m2+m1);
 		
 		Coordinate co = new Coordinate(a.x, a.y);
 		Polar po = co.rectToPolar();
