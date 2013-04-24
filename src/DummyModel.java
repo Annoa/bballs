@@ -14,6 +14,120 @@ public class DummyModel implements IBouncingBallsModel {
 	private final double areaHeight;
 
 	private List<Ball> ballList;
+	
+	protected class Coordinate {
+		protected double x, y;
+		
+		public Coordinate(double x, double y) {
+			this.x = x;
+			this.y = y;
+		}
+		
+		public Polar rectToPolar() {
+			double r = Math.sqrt(this.x * this.x + this.y * this.y);
+			double theta = Math.atan2(y, x);
+			return new Polar(r, theta);
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			long temp;
+			temp = Double.doubleToLongBits(x);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(y);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			return result;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Coordinate other = (Coordinate) obj;
+			if (!getOuterType().equals(other.getOuterType())) {
+				return false;
+			}
+			if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x)) {
+				return false;
+			}
+			if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y)) {
+				return false;
+			}
+			return true;
+		}
+
+		private DummyModel getOuterType() {
+			return DummyModel.this;
+		}
+		
+	}
+	
+	protected class Polar {
+		protected double r, theta;
+		
+		public Polar(double r, double theta) {
+			this.r = r;
+			this.theta = theta;
+		}
+		
+		public Coordinate polarToRect() {
+			double x = r * Math.cos(theta);
+			double y = r * Math.sin(theta);
+			return new Coordinate(x, y);
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + getOuterType().hashCode();
+			long temp;
+			temp = Double.doubleToLongBits(r);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			temp = Double.doubleToLongBits(theta);
+			result = prime * result + (int) (temp ^ (temp >>> 32));
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Polar other = (Polar) obj;
+			if (!getOuterType().equals(other.getOuterType())) {
+				return false;
+			}
+			if (Double.doubleToLongBits(r) != Double.doubleToLongBits(other.r)) {
+				return false;
+			}
+			if (Double.doubleToLongBits(theta) != Double
+					.doubleToLongBits(other.theta)) {
+				return false;
+			}
+			return true;
+		}
+
+		private DummyModel getOuterType() {
+			return DummyModel.this;
+		}
+	}
 
 	protected class Ball {
 		protected double x, y, vx, vy, r;
@@ -158,8 +272,24 @@ public class DummyModel implements IBouncingBallsModel {
 		b.vx = ((m2*v2x + m1 * v1x) - m1 * -(v1x-v2x))/(m2+m1);
 		b.vy = ((m2*v2y + m1 * v1y) - m1 * -(v1y-v2y))/(m2+m1);
 		
-		double xx = a.x - b.x;
-		double yy = a.y - b.y;		
+		Coordinate co = new Coordinate(a.x, a.y);
+		Polar po = co.rectToPolar();
+		Coordinate cd = new Coordinate(a.x - b.x, a.y - b.y);
+		Polar pd = cd.rectToPolar();
+		double force = Math.cos(Math.abs(po.theta - pd.theta)) * po.r;
+		
+		po = new Polar(force, pd.theta);
+		co = po.polarToRect();
+		b.vx = co.x;
+		b.vy = co.y;
+		
+		co = new Coordinate(b.x, b.y);
+		po = co.rectToPolar();
+		force = Math.cos(Math.abs(po.theta - pd.theta)) * po.r;
+		po = new Polar(force, pd.theta);
+		co = po.polarToRect();
+		a.vx = co.x;
+		b.vy = co.y;	
 	}
 
 	@Override
