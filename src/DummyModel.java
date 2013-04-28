@@ -130,7 +130,7 @@ public class DummyModel implements IBouncingBallsModel {
 	}
 
 	protected class Ball {
-		protected double x, y, vx, vy, r;
+		protected double x, y, vx, vy, r, mass;
 
 		public Ball(double x, double y, double r) {
 			this.x = x;
@@ -138,6 +138,7 @@ public class DummyModel implements IBouncingBallsModel {
 			this.r = r;
 			vx = 1;
 			vy = 1;
+			mass = r;
 
 			// Random rand = new Random();
 			// double xs, ys;
@@ -203,7 +204,7 @@ public class DummyModel implements IBouncingBallsModel {
 		Random rand = new Random();
 		for (int i = 0; i < ballAmount; i++) {
 			double tempR = 0.5 + rand.nextDouble() % 1.5;
-			ballList.add(new Ball(tempR + (i * tempR), areaHeight - tempR
+			ballList.add(new Ball(tempR + (3*i * tempR), areaHeight - tempR
 					- (areaHeight / 2) * rand.nextDouble(), tempR));
 		}
 		System.out.println("" + areaHeight + " " + areaWidth);
@@ -214,16 +215,14 @@ public class DummyModel implements IBouncingBallsModel {
 		for (Ball b : ballList) {
 			b.tick(deltaT);
 		}
-		
-		List<Ball>[] list = getCollisions(ballList);
-		
-		for (int i = 0; i < ballList.size(); i++) {
-			if (list[i] != null) {
-				for (Ball b: list[i]) {
-					handleCollision(ballList.get(i), b);
+		for (int i = 0; i<ballList.size();i++){
+			for (int j = i+1;j<ballList.size();j++){
+				if (isColliding(ballList.get(i),ballList.get(j))){
+					handleCollision(ballList.get(i), ballList.get(j));
 				}
 			}
 		}
+	}
 
 		// if (x < r || x > areaWidth - r) {
 		// vx *= -1;
@@ -251,28 +250,39 @@ public class DummyModel implements IBouncingBallsModel {
 		// double m = 4 * Math.PI * r * r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
 
 		// f = m * y''
-	}
+	
 
-	private void handleCollision(Ball a, Ball b) {
-		/*
-		 * Om vi representerar en boll som ett klot så kommer det inte att
-		 * stämma överens med verkligheten riktigt. Utan det vi vill göra är
-		 * snarare att ta mantelarean av klotet med radien r (4*pi*r*r) med
-		 * skalets tjocklek som vi antar är 0.002 m. Därför blir volymen av
-		 * mantelarean*0.002 volymen av själva plasten som vi multiplicerar med
-		 * densiteten 730 kg/m^3 vilket ger massan
-		 */
-//		double m1 = 4 * Math.PI * a.r * a.r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
-//		double m2 = 4 * Math.PI * b.r * b.r * SHELL_THICKNESS * DENSITY_OF_RUBBER;
-//		
-//		double v1x = a.vx, v2x = b.vx, v1y = a.vy, v2y = b.vy;
-//		
-//		a.vx = ((m1*v1x + m2 * v2x) - m2 * -(v2x-v1x))/(m1+m2);
-//		a.vy = ((m1*v1y + m2 * v2y) - m2 * -(v2y-v1y))/(m1+m2);
-//		b.vx = ((m2*v2x + m1 * v1x) - m1 * -(v1x-v2x))/(m2+m1);
-//		b.vy = ((m2*v2y + m1 * v1y) - m1 * -(v1y-v2y))/(m2+m1);
+	private void handleCollision(Ball b1, Ball b2) {
+		double deltaX = b1.x - b2.x;
+        double deltaY = b1.y - b2.y;
+        double angle = Math.atan2(deltaY, deltaX);
+
+        //transfer the balls into polar coordinates
+        double rBall1 = Math.sqrt(b1.vx * b1.vx + b1.vy * b1.vy);
+        double rBall2 = Math.sqrt(b2.vx * b2.vx + b2.vy * b2.vy);
+        double thetaBall1 = Math.atan2(b1.vy, b1.vx);
+        double thetaBall2 = Math.atan2(b2.vy, b2.vx);
+
+        //rotate the balls, fixing x as a basis
+        double newXBall1 = rBall1 * Math.cos(thetaBall1 - angle);
+        double newYBall1 = rBall1 * Math.sin(thetaBall1 - angle);
+        double newXBall2 = rBall2 * Math.cos(thetaBall2 - angle);
+        double newYBall2 = rBall2 * Math.sin(thetaBall2 - angle);
+
+
+        //calculate the new velocities
+        double vx1 = ((b1.mass - b2.mass) * newXBall1 + (b2.mass + b2.mass) * newXBall2) / (b1.mass + b2.mass);
+        double vx2 = ((b1.mass + b1.mass) * newXBall1 + (b2.mass - b1.mass) * newXBall2) / (b1.mass + b2.mass);
+        double vy1 = newYBall1;
+        double vy2 = newYBall2;
+
+        //change back to cartesian coordinates and rotate back the balls
+        b1.vx = Math.cos(angle) * vx1 + Math.cos(angle + Math.PI / 2) * vy1;
+        b1.vy = Math.sin(angle) * vx1 + Math.sin(angle + Math.PI / 2) * vy1;
+        b2.vx = Math.cos(angle) * vx2 + Math.cos(angle + Math.PI / 2) * vy2;
+        b2.vy = Math.sin(angle) * vx2 + Math.sin(angle + Math.PI / 2) * vy2;
 		
-		Coordinate co = new Coordinate(a.x, a.y);
+		/*Coordinate co = new Coordinate(a.x, a.y);
 		Polar po = co.rectToPolar();
 		Coordinate cd = new Coordinate(a.x - b.x, a.y - b.y);
 		Polar pd = cd.rectToPolar();
@@ -289,7 +299,7 @@ public class DummyModel implements IBouncingBallsModel {
 		po = new Polar(force, pd.theta);
 		co = po.polarToRect();
 		a.vx = co.x;
-		b.vy = co.y;	
+		b.vy = co.y;*/	
 	}
 
 	@Override
@@ -329,14 +339,14 @@ public class DummyModel implements IBouncingBallsModel {
 			Ball b = balls.get(i);
 			ix = b.x; iy = b.y; ir = b.r;
 			
-			double squaredist;
+			double dist;
 			for (Ball b2 : balls) {
 				if (b == b2) {
 					continue;
 				} else {
-					squaredist 	= (ix - b2.x) * (ix - b2.x) 
-								+ (iy - b2.y) * (iy - b2.y);
-					if (squaredist <= (ir + b2.r)*(ir + b2.r)) {
+					dist 	= Math.sqrt((ix - b2.x) * (ix - b2.x) 
+								+ (iy - b2.y) * (iy - b2.y));
+					if (dist <= (ir + b2.r)) {
 						addToList(collisionsArray, i, b2);
 					}
 				}
@@ -358,4 +368,12 @@ public class DummyModel implements IBouncingBallsModel {
 			array[i].add(b);
 		}
 	}
+	
+	private boolean isColliding(Ball b1, Ball b2){
+	        double xDist = b2.x - b1.x;
+	        double yDist = b2.y - b1.y;
+	        double dist = Math.sqrt(xDist * xDist + yDist * yDist);
+	        return dist <= b1.r + b2.r;
+	}
+	    
 }
